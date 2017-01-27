@@ -22,17 +22,9 @@ class ViewController: UIViewController, AVAudioRecorderDelegate {
         // Do any additional setup after loading the view, typically from a nib.
         stopButton.isEnabled = false
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
     
     @IBAction func startButton(_ sender: UIButton) {
-        recordButton.isEnabled = false
-        stopButton.isEnabled = true
-        
-        recordingLabel.text = "Recording in progress.."
+        configureUI(recording: true)
         
         let dirPath = NSSearchPathForDirectoriesInDomains(.documentDirectory,.userDomainMask, true)[0] as String
         let recordingName = "recordedVoice.wav"
@@ -50,10 +42,7 @@ class ViewController: UIViewController, AVAudioRecorderDelegate {
     }
     
     @IBAction func stopButton(_ sender: UIButton) {
-        recordButton.isEnabled = true
-        stopButton.isEnabled = false
-        
-        recordingLabel.text = "Tap to record.."
+        configureUI(recording: false)
         
         audioRecorder.stop()
         let audioSession = AVAudioSession.sharedInstance()
@@ -63,8 +52,8 @@ class ViewController: UIViewController, AVAudioRecorderDelegate {
     func audioRecorderDidFinishRecording(_ recorder: AVAudioRecorder, successfully flag: Bool) {
         if flag {
             performSegue(withIdentifier: "stopRecording", sender: audioRecorder.url)
-        }else {
-            print("Something went wrong!")
+        } else {
+            showAlertActivity(titleText: "Warning", messageText: "Somthing went wrong!", buttonText: "Okay")
         }
     }
     
@@ -74,6 +63,21 @@ class ViewController: UIViewController, AVAudioRecorderDelegate {
             let recordAudioUrl = sender as! URL
             playSoundVC.recordedAudioURL = recordAudioUrl
         }
+    }
+    
+    func configureUI(recording: Bool) {
+        recordingLabel.text = recording ? "Recording in progress" : "Tap to Record"
+        stopButton.isEnabled = recording
+        recordButton.isEnabled = !recording
+    }
+    
+    func showAlertActivity(titleText: String, messageText: String, buttonText: String) {
+        let actionSheetController: UIAlertController = UIAlertController(title: titleText, message: messageText, preferredStyle: .alert)
+        let cancelAction: UIAlertAction = UIAlertAction(title: buttonText, style: .cancel) { action -> Void in
+            //Just dismiss the action sheet
+        }
+        actionSheetController.addAction(cancelAction)
+        self.present(actionSheetController, animated: true, completion: nil)
     }
 }
 
